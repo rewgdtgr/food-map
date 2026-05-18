@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班级美食地图 | 趣味主题展示站</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --primary-light: #FF8C5A;
+            --secondary: #FFB800;
+            --accent: #E63946;
+            --bg: #FFF8F0;
+            --card-bg: #FFFFFF;
+            --text: #2D3436;
+            --text-light: #636E72;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 30px rgba(255, 107, 53, 0.2);
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 60px 0 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            color: rgba(255,255,255,0.95);
+            font-weight: 500;
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 32px 0;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 28px;
+            padding: 20px 0 60px;
+        }
+
+        .food-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .food-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .food-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,107,53,0.05) 100%);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .food-card:hover::after {
+            opacity: 1;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+        }
+
+        .card-image-container {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--accent);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            z-index: 2;
+        }
+
+        .card-content {
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-category {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .card-description {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #F0F0F0;
+        }
+
+        .card-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .card-rating {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star {
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        .star.empty {
+            color: #DDD;
+        }
+
+        .location-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        footer {
+            background: var(--text);
+            color: white;
+            text-align: center;
+            padding: 40px 24px;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .footer-icon {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.8;
+        }
+
+        .footer-link {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 40px 0 30px;
+            }
+
+            .header-icon {
+                font-size: 48px;
+            }
+
+            .food-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px 0 40px;
+            }
+
+            .filter-bar {
+                padding: 20px 0;
+            }
+
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .card-image {
+                height: 180px;
+            }
+
+            .card-content {
+                padding: 16px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .food-card:nth-child(1) { animation-delay: 0.1s; }
+        .food-card:nth-child(2) { animation-delay: 0.2s; }
+        .food-card:nth-child(3) { animation-delay: 0.3s; }
+        .food-card:nth-child(4) { animation-delay: 0.4s; }
+        .food-card:nth-child(5) { animation-delay: 0.5s; }
+        .food-card:nth-child(6) { animation-delay: 0.6s; }
+        .food-card:nth-child(7) { animation-delay: 0.7s; }
+        .food-card:nth-child(8) { animation-delay: 0.8s; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="header-icon">🍜</div>
+            <h1>班级美食地图</h1>
+            <p class="subtitle">探索学校周边的宝藏美食，每一条都是同学们的真实推荐！</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">全部</button>
+            <button class="filter-btn" data-filter="snack">小吃</button>
+            <button class="filter-btn" data-filter="meal">正餐</button>
+            <button class="filter-btn" data-filter="drink">饮品</button>
+            <button class="filter-btn" data-filter="dessert">甜品</button>
+        </div>
+
+        <div class="food-grid">
+            <article class="food-card fade-in" data-category="snack">
+                <span class="card-badge">人气TOP1</span>
+                <div class="card-image-container">🥞</div>
+                <div class="card-content">
+                    <div class="card-category">小吃</div>
+                    <h3 class="card-title">老张煎饼果子</h3>
+                    <p class="card-description">校门口开了十年的老字号，薄脆香酥，加个鸡蛋和火腿肠，早餐完美选择！</p>
+                    <div class="location-tag">📍 学校南门对面</div>
+                    <div class="card-meta">
+                        <span class="card-price">¥6-12</span>
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="food-card fade-in" data-category="meal">
+                <span class="card-badge">同学最爱</span>
+                <div class="card-image-container">🍜</div>
+                <div class="card-content">
+                    <div class="card-category">正餐</div>
+                    <h3 class="card-title">小李麻辣烫</h3>
+                    <p class="card-description">自选食材，汤底浓郁，辣度可选。放学后来一碗，暖胃又暖心，性价比超高！</p>
+                    <div class="location-tag">📍 东门步行街</div>
+                    <div class="card-meta">
+                        <span class="card-price">¥15-25</span>
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="food-card fade-in" data-category="drink">
+                <div class="card-image-container">🧃</div>
+                <div class="card-content">
+                    <div class="card-category">饮品</div>
+                    <h3 class="card-title">鲜果时光</h3>
+                    <p class="card-description">新鲜水果现榨果汁，芒果冰沙和草莓奶昔是招牌，夏天必备解暑神器！</p>
+                    <div class="location-tag">📍 西门奶茶街</div>
+                    <div class="card-meta">
+                        <span class="card-price">¥8-15</span>
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star empty">★</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="food-card fade-in" data-category="snack">
+                <div class="card-image-container">🍗</div>
+                <div class="card-content">
+                    <div class="card-category">小吃</div>
+                    <h3 class="card-title">台湾香酥鸡排</h3>
+                    <p class="card-description">超大块鸡排，外酥里嫩，撒上孜然和辣椒粉，放学路上的能量补给站！</p>
+                    <div class="location-tag">📍 北门小吃街</div>
+                    <div class="card-meta">
+                        <span class="card-price">¥10-18</span>
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="food-card fade-in" data-category="dessert">
+                <span class="card-badge">新品推荐</span>
+                <div class="card-image-container">🧁</div>
+                <div class="card-content">
+                    <div class="card-category">甜品</div>
+                    <h3 class="card-title">甜蜜烘焙坊</h3>
+                    <p class="card-description">手工蛋糕和面包，蛋挞和泡芙是必买款。生日蛋糕也可以提前预定哦！</p>
+                    <div class="location-tag">📍 南门商业街</div>
+                    <div class="card-meta">
+                        <span class="card-price">¥5-35</span>
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star empty">★</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="food-card fade-in" data-category="meal">
+                <div class="card-image-container">🍝</div>
+                <div class="card-content">
+                    <div class="card-category">正餐</div>
+                    <h3 class="card-title">重庆小面馆</h3>
+                    <p class="card-description">正宗重庆风味，豌杂面和酸辣粉是一绝，辣得过瘾，麻得舒服！</p>
+                    <div class="location-tag">📍 东门美食广场</div>
+                    <div class="card-meta">
+                        <span class="card-price">¥12-20</span>
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="food-card fade-in" data-category="drink">
+                <div class="card-image-container">🧋</div>
+                <div class="card-content">
+                    <div class="card-category">饮品</div>
+                    <h3 class="card-title">茶语时光</h3>
+                    <p class="card-description">珍珠奶茶、水果茶、奶盖茶，种类超多。波霸珍珠Q弹有嚼劲，同学们的最爱！</p>
+                    <div class="location-tag">📍 西门奶茶街</div>
+                    <div class="card-meta">
+                        <span class="card-price">¥10-18</span>
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star empty">★</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="food-card fade-in" data-category="dessert">
+                <div class="card-image-container">🍦</div>
+                <div class="card-content">
+                    <div class="card-category">甜品</div>
+                    <h3 class="card-title">冰雪奇缘冰淇淋</h3>
+                    <p class="card-description">手工冰淇淋，口味超多：抹茶、巧克力、草莓、芒果...夏天来一个，瞬间清凉！</p>
+                    <div class="location-tag">📍 学校正门右侧</div>
+                    <div class="card-meta">
+                        <span class="card-price">¥5-15</span>
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                            <span class="star">★</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-icon">🌟</div>
+            <p class="footer-text">
+                GitHub Pages 在线展示 — 趣味主题展示站（第一次课作业）<br>
+                由 <span style="color: var(--secondary);">班级同学们</span> 共同推荐制作<br>
+                <span style="font-size: 0.8rem; opacity: 0.6;">© 2026 班级美食地图 | 用 ❤️ 和 HTML 制作</span>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.dataset.filter;
+                document.querySelectorAll('.food-card').forEach(card => {
+                    if (filter === 'all' || card.dataset.category === filter) {
+                        card.style.display = 'block';
+                        setTimeout(() => card.style.opacity = '1', 10);
+                    } else {
+                        card.style.opacity = '0';
+                        setTimeout(() => card.style.display = 'none', 300);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
