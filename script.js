@@ -278,7 +278,241 @@ const elements = {
     sortSelect: document.getElementById('sortSelect'),
     modal: document.getElementById('modal'),
     lightbox: document.getElementById('lightbox'),
-    toast: document.getElementById('toast')
+    toast: document.getElementById('toast'),
+    themeToggle: document.getElementById('themeToggle'),
+    exportBtn: document.getElementById('exportBtn'),
+    importInput: document.getElementById('importInput'),
+    importBtn: document.getElementById('importBtn'),
+    scrollProgress: document.getElementById('scrollProgress'),
+    skeleton: document.getElementById('skeleton'),
+    weatherWidget: document.getElementById('weatherWidget'),
+    quoteWidget: document.getElementById('quoteWidget'),
+    statTotal: document.getElementById('statTotal'),
+    statLikes: document.getElementById('statLikes'),
+    statFavorites: document.getElementById('statFavorites'),
+    statComments: document.getElementById('statComments'),
+    tagCloud: document.getElementById('tagCloud'),
+    hero: document.getElementById('hero'),
+    navLinks: document.querySelectorAll('.nav-link'),
+    bottomNavItems: document.querySelectorAll('.bottom-nav-item')
+};
+
+// ========== 天气API模块（角色：前端开发） ==========
+const WeatherAPI = {
+    async fetch() {
+        try {
+            const response = await fetch('https://wttr.in/?format=j1');
+            if (!response.ok) throw new Error('天气API请求失败');
+            const data = await response.json();
+            const current = data.current_condition[0];
+            const temp = current.temp_C;
+            const desc = current.weatherDesc[0].value;
+            const icon = this.getWeatherIcon(desc);
+            elements.weatherWidget.innerHTML = `
+                <span class="weather-icon">${icon}</span>
+                <span class="weather-temp">${temp}°C</span>
+                <span class="weather-desc">${desc}</span>
+            `;
+        } catch (error) {
+            console.error('天气API错误:', error);
+            elements.weatherWidget.innerHTML = `
+                <span class="weather-icon">🌤️</span>
+                <span class="weather-temp">22°C</span>
+                <span class="weather-desc">晴朗（备用数据）</span>
+            `;
+        }
+    },
+    getWeatherIcon(desc) {
+        const lower = desc.toLowerCase();
+        if (lower.includes('rain')) return '🌧️';
+        if (lower.includes('cloud')) return '☁️';
+        if (lower.includes('snow')) return '❄️';
+        if (lower.includes('sun') || lower.includes('clear')) return '☀️';
+        return '🌤️';
+    }
+};
+
+// ========== 每日一句API模块（角色：前端开发） ==========
+const QuoteAPI = {
+    async fetch() {
+        try {
+            const response = await fetch('https://v1.hitokoto.cn/?c=i&encode=text');
+            if (!response.ok) throw new Error('每日一句API请求失败');
+            const text = await response.text();
+            elements.quoteWidget.innerHTML = `<p class="quote-text">💬 ${text}</p>`;
+        } catch (error) {
+            console.error('每日一句API错误:', error);
+            const fallbackQuotes = [
+                '美食是相逢最美好的理由，味道里都是回忆。',
+                '人生苦短，再来一碗。',
+                '唯有美食与爱不可辜负。',
+                '吃货的最高境界：眼见为食！'
+            ];
+            const randomQuote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+            elements.quoteWidget.innerHTML = `<p class="quote-text">💬 ${randomQuote}</p>`;
+        }
+    }
+};
+
+// ========== 主题切换模块（角色：前端开发） ==========
+const Theme = {
+    init() {
+        const savedTheme = Storage.get('food_theme', 'light');
+        this.set(savedTheme);
+    },
+    set(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        Storage.set('food_theme', theme);
+        this.updateIcon(theme);
+    },
+    toggle() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        this.set(next);
+    },
+    updateIcon(theme) {
+        elements.themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+};
+
+// ========== 统计仪表盘模块（角色：前端开发） ==========
+const Stats = {
+    update() {
+        const likes = InteractionData.getLikes();
+        const favorites = InteractionData.getFavorites();
+        const comments = InteractionData.getComments();
+        const totalLikes = Object.values(likes).reduce((sum, count) => sum + count, 0);
+        const totalFavorites = favorites.length;
+        const totalComments = Object.values(comments).reduce((sum, arr) => sum + arr.length, 0);
+        elements.statTotal.textContent = FOOD_DATA.length;
+        elements.statLikes.textContent = totalLikes;
+        elements.statFavorites.textContent = totalFavorites;
+        elements.statComments.textContent = totalComments;
+    }
+};
+
+// ========== 数据导出/导入模块（角色：前端开发） ==========
+const DataExport = {
+    export() {
+        const data = {
+            foods: FOOD_DATA,
+            likes: InteractionData.getLikes(),
+            favorites: InteractionData.getFavorites(),
+            comments: InteractionData.getComments(),
+            exportTime: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `美食地图数据_${new Date().toLocaleDateString()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        Toast.show('数据导出成功！📤');
+    },
+    import(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (!data.likes || !data.favorites || !data.comments) {
+                    throw new Error('数据格式不正确');
+                }
+                Storage.set('food_likes', data.likes);
+                Storage.set('food_favorites', data.favorites);
+                Storage.set('food_comments', data.comments);
+                Filter.apply();
+                Stats.update();
+                Toast.show('数据导入成功！📥');
+            } catch (error) {
+                console.error('导入失败:', error);
+                Toast.show('导入失败：文件格式不正确');
+            }
+        };
+        reader.readAsText(file);
+    }
+};
+
+// ========== 视差滚动和进度条模块（角色：UI设计师） ==========
+const ParallaxScroll = {
+    init() {
+        window.addEventListener('scroll', () => {
+            this.updateParallax();
+            this.updateProgress();
+        }, { passive: true });
+    },
+    updateParallax() {
+        const scrolled = window.pageYOffset;
+        const heroBg = document.querySelector('.hero-parallax-bg');
+        if (heroBg) {
+            heroBg.style.transform = `translateY(${scrolled * 0.3}px)`;
+        }
+    },
+    updateProgress() {
+        const scrollTop = window.pageYOffset;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = (scrollTop / docHeight) * 100;
+        elements.scrollProgress.style.width = `${progress}%`;
+    }
+};
+
+// ========== 骨架屏模块（角色：UI设计师） ==========
+const Skeleton = {
+    hide() {
+        setTimeout(() => {
+            elements.skeleton.classList.add('hidden');
+        }, 500);
+    }
+};
+
+// ========== 移动端导航模块（角色：UI设计师） ==========
+const MobileNav = {
+    init() {
+        elements.navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleNav(link.dataset.nav);
+            });
+        });
+        elements.bottomNavItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleNav(item.dataset.nav);
+            });
+        });
+    },
+    handleNav(nav) {
+        elements.navLinks.forEach(link => {
+            link.classList.toggle('active', link.dataset.nav === nav);
+        });
+        elements.bottomNavItems.forEach(item => {
+            item.classList.toggle('active', item.dataset.nav === nav);
+        });
+        switch (nav) {
+            case 'home':
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                break;
+            case 'stats':
+                document.getElementById('statsSection').scrollIntoView({ behavior: 'smooth' });
+                break;
+            case 'favorites':
+                this.showFavorites();
+                break;
+            case 'profile':
+                Toast.show('个人中心功能开发中...');
+                break;
+        }
+    },
+    showFavorites() {
+        const favorites = InteractionData.getFavorites();
+        if (favorites.length === 0) {
+            Toast.show('还没有收藏任何美食哦~');
+            return;
+        }
+        state.filteredData = FOOD_DATA.filter(food => favorites.includes(food.id));
+        Renderer.renderGrid();
+        Toast.show(`显示 ${favorites.length} 个收藏的美食`);
+    }
 };
 
 // ========== 渲染模块 ==========
@@ -585,6 +819,32 @@ const Lightbox = {
     }
 };
 
+// ========== 分享功能模块（角色：前端开发） ==========
+const Share = {
+    shareFood(food) {
+        const shareText = `推荐美食：${food.name} - ${food.description} 📍${food.location}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: food.name,
+                text: shareText,
+                url: window.location.href
+            }).catch(() => {
+                this.copyText(shareText);
+            });
+        } else {
+            this.copyText(shareText);
+        }
+    },
+    copyText(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            Toast.show('已复制到剪贴板！🔗');
+        }).catch(() => {
+            Toast.show('复制失败');
+        });
+    }
+};
+
 // ========== Toast提示模块 ==========
 const Toast = {
     /**
@@ -635,12 +895,38 @@ const ScrollEffect = {
 
 // ========== 事件绑定 ==========
 function bindEvents() {
+    // 主题切换
+    elements.themeToggle.addEventListener('click', () => Theme.toggle());
+
+    // 数据导出/导入
+    elements.exportBtn.addEventListener('click', () => DataExport.export());
+    elements.importBtn.addEventListener('click', () => elements.importInput.click());
+    elements.importInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            DataExport.import(e.target.files[0]);
+        }
+    });
+
     // 筛选按钮点击
     elements.filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             elements.filterBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             state.currentFilter = btn.dataset.filter;
+            Filter.apply();
+        });
+    });
+
+    // 标签云筛选
+    elements.tagCloud.querySelectorAll('.tag-item').forEach(tag => {
+        tag.addEventListener('click', () => {
+            elements.tagCloud.querySelectorAll('.tag-item').forEach(t => t.classList.remove('active'));
+            tag.classList.add('active');
+            state.currentFilter = tag.dataset.filter;
+            // 同步更新筛选按钮状态
+            elements.filterBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === tag.dataset.filter);
+            });
             Filter.apply();
         });
     });
@@ -696,6 +982,7 @@ function bindEvents() {
         const newCount = InteractionData.like(foodId);
         likeBtn.classList.add('liked');
         likeBtn.querySelector('.like-count').textContent = newCount;
+        Stats.update();
         Toast.show('点赞成功！👍');
     });
 
@@ -709,6 +996,7 @@ function bindEvents() {
         const isFavorited = InteractionData.toggleFavorite(foodId);
         favBtn.classList.toggle('favorited', isFavorited);
         favBtn.querySelector('.action-text').textContent = isFavorited ? '已收藏' : '收藏';
+        Stats.update();
         Toast.show(isFavorited ? '收藏成功！⭐' : '已取消收藏');
     });
 
@@ -730,6 +1018,7 @@ function bindEvents() {
             cardBtn.classList.add('liked');
             cardBtn.querySelector('.like-count').textContent = newCount;
         }
+        Stats.update();
         Toast.show('点赞成功！👍');
     });
 
@@ -746,28 +1035,14 @@ function bindEvents() {
             cardBtn.classList.toggle('favorited', isFavorited);
             cardBtn.querySelector('.action-text').textContent = isFavorited ? '已收藏' : '收藏';
         }
+        Stats.update();
         Toast.show(isFavorited ? '收藏成功！⭐' : '已取消收藏');
     });
 
     elements.modal.querySelector('.share-btn').addEventListener('click', () => {
         const food = FOOD_DATA.find(f => f.id === state.currentFoodId);
         if (!food) return;
-        
-        const shareText = `推荐美食：${food.name} - ${food.description} 📍${food.location}`;
-        
-        // 尝试使用Web Share API
-        if (navigator.share) {
-            navigator.share({
-                title: food.name,
-                text: shareText,
-                url: window.location.href
-            }).catch(() => {
-                // 用户取消分享时复制到剪贴板
-                copyToClipboard(shareText);
-            });
-        } else {
-            copyToClipboard(shareText);
-        }
+        Share.shareFood(food);
     });
 
     // 模态框图片点击打开Lightbox
@@ -793,6 +1068,7 @@ function bindEvents() {
         InteractionData.addComment(state.currentFoodId, nickname, content);
         Modal.renderComments(state.currentFoodId);
         document.getElementById('commentContent').value = '';
+        Stats.update();
         Toast.show('评论发表成功！💬');
     });
 
@@ -818,6 +1094,9 @@ function bindEvents() {
             if (e.key === 'ArrowRight') Lightbox.next();
         }
     });
+
+    // 移动端导航
+    MobileNav.init();
 }
 
 /**
@@ -834,9 +1113,34 @@ function copyToClipboard(text) {
 
 // ========== 初始化 ==========
 function init() {
+    // 初始化主题
+    Theme.init();
+    
+    // 初始化滚动动效
     ScrollEffect.init();
+    
+    // 初始化视差滚动和进度条
+    ParallaxScroll.init();
+    
+    // 初始化移动端导航
+    MobileNav.init();
+    
+    // 获取天气和每日一句
+    WeatherAPI.fetch();
+    QuoteAPI.fetch();
+    
+    // 渲染美食网格
     Filter.apply();
+    
+    // 更新统计数据
+    Stats.update();
+    
+    // 绑定事件
     bindEvents();
+    
+    // 隐藏骨架屏
+    Skeleton.hide();
+    
     console.log('班级美食地图已加载完成 🍜');
 }
 

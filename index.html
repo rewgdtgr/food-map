@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,22 +10,111 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- 页面头部：标题、搜索、筛选、排序 -->
-    <header>
+    <!-- 角色：UI设计师 - 滚动进度条 -->
+    <div id="scrollProgress" class="scroll-progress"></div>
+
+    <!-- 角色：UI设计师 - 骨架屏 -->
+    <div id="skeleton" class="skeleton-screen">
+        <div class="skeleton-header">
+            <div class="skeleton-circle"></div>
+            <div class="skeleton-line w60"></div>
+            <div class="skeleton-line w40"></div>
+        </div>
+        <div class="skeleton-grid">
+            <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div></div>
+            <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div></div>
+            <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div></div>
+            <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div></div>
+        </div>
+    </div>
+
+    <!-- 角色：UI设计师 - 顶部导航栏（桌面端） -->
+    <nav class="top-nav">
+        <div class="container nav-content">
+            <div class="nav-logo">🍜 班级美食地图</div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-nav="home">首页</a>
+                <a href="#" class="nav-link" data-nav="stats">统计</a>
+                <a href="#" class="nav-link" data-nav="favorites">收藏</a>
+            </div>
+            <div class="nav-actions">
+                <button id="themeToggle" class="theme-toggle" aria-label="切换主题"></button>
+                <button id="exportBtn" class="nav-btn" aria-label="导出数据">📤 导出</button>
+                <input type="file" id="importInput" accept=".json" hidden>
+                <button id="importBtn" class="nav-btn" aria-label="导入数据">📥 导入</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 角色：前端开发 - 页面头部（含天气API和每日一句） -->
+    <header class="hero" id="hero">
+        <div class="hero-parallax-bg" data-ai-placeholder="待替换为AI生成背景图"></div>
         <div class="container header-content">
             <div class="header-icon">🍜</div>
             <h1>班级美食地图</h1>
             <p class="subtitle">探索学校周边的宝藏美食，每一条都是同学们的真实推荐！</p>
-            
+
+            <!-- 角色：前端开发 - 天气API展示 -->
+            <div id="weatherWidget" class="weather-widget">
+                <div class="weather-loading">
+                    <div class="loading-spinner"></div>
+                    <span>加载天气...</span>
+                </div>
+            </div>
+
+            <!-- 角色：前端开发 - 每日一句API展示 -->
+            <div id="quoteWidget" class="quote-widget">
+                <div class="quote-loading">
+                    <div class="loading-spinner"></div>
+                    <span>加载每日一句...</span>
+                </div>
+            </div>
+
             <!-- 搜索框 -->
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="搜索美食名称、描述..." aria-label="搜索美食">
-                <button id="searchBtn" aria-label="搜索">🔍</button>
+                <button id="searchBtn" aria-label="搜索"></button>
             </div>
         </div>
     </header>
 
     <main class="container">
+        <!-- 角色：前端开发 - 统计仪表盘 -->
+        <section id="statsSection" class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">🍽️</div>
+                <div class="stat-number" id="statTotal">0</div>
+                <div class="stat-label">美食总数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👍</div>
+                <div class="stat-number" id="statLikes">0</div>
+                <div class="stat-label">总点赞数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-number" id="statFavorites">0</div>
+                <div class="stat-label">总收藏数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💬</div>
+                <div class="stat-number" id="statComments">0</div>
+                <div class="stat-label">总评论数</div>
+            </div>
+        </section>
+
+        <!-- 角色：UI设计师 - 热门推荐标签云 -->
+        <section class="tag-cloud" id="tagCloud">
+            <span class="tag-label">🔥 热门推荐：</span>
+            <button class="tag-item" data-filter="all">全部</button>
+            <button class="tag-item" data-filter="snack"> 小吃</button>
+            <button class="tag-item" data-filter="meal"> 正餐</button>
+            <button class="tag-item" data-filter="drink"> 饮品</button>
+            <button class="tag-item" data-filter="dessert">🍰 甜品</button>
+            <span class="tag-hot">🔥 爆款推荐</span>
+            <span class="tag-star">⭐ 班级之选</span>
+        </section>
+
         <!-- 筛选与排序控制栏 -->
         <div class="control-bar">
             <div class="filter-bar">
@@ -39,6 +128,7 @@
                 <label for="sortSelect">排序：</label>
                 <select id="sortSelect">
                     <option value="default">默认排序</option>
+                    <option value="likes">按点赞数排序</option>
                     <option value="name">按名称排序</option>
                     <option value="price-asc">价格从低到高</option>
                     <option value="price-desc">价格从高到低</option>
@@ -63,7 +153,7 @@
         </div>
     </main>
 
-    <!-- 详情模态框 -->
+    <!-- 角色：前端开发 - 详情模态框 -->
     <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="modal-backdrop"></div>
         <div class="modal-content">
@@ -90,7 +180,7 @@
                         <span class="action-text">分享</span>
                     </button>
                 </div>
-                
+
                 <!-- 评论区 -->
                 <div class="comment-section">
                     <h3 class="comment-title">💬 评论区</h3>
@@ -105,7 +195,7 @@
         </div>
     </div>
 
-    <!-- Lightbox图片查看器 -->
+    <!-- 角色：前端开发 - Lightbox图片查看器 -->
     <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="lightbox-backdrop"></div>
         <div class="lightbox-content">
@@ -114,10 +204,11 @@
             <button class="lightbox-next" aria-label="下一张">&#10095;</button>
             <div class="lightbox-image"></div>
             <div class="lightbox-caption"></div>
+            <div class="lightbox-counter"></div>
         </div>
     </div>
 
-    <!-- 页脚 -->
+    <!-- 角色：UI设计师 - 页脚 -->
     <footer>
         <div class="footer-content">
             <div class="footer-icon">🌟</div>
@@ -128,6 +219,26 @@
             </p>
         </div>
     </footer>
+
+    <!-- 角色：UI设计师 - 移动端底部导航栏 -->
+    <nav class="bottom-nav">
+        <a href="#" class="bottom-nav-item active" data-nav="home">
+            <span class="bottom-nav-icon"></span>
+            <span class="bottom-nav-label">首页</span>
+        </a>
+        <a href="#" class="bottom-nav-item" data-nav="stats">
+            <span class="bottom-nav-icon">📊</span>
+            <span class="bottom-nav-label">统计</span>
+        </a>
+        <a href="#" class="bottom-nav-item" data-nav="favorites">
+            <span class="bottom-nav-icon">⭐</span>
+            <span class="bottom-nav-label">收藏</span>
+        </a>
+        <a href="#" class="bottom-nav-item" data-nav="profile">
+            <span class="bottom-nav-icon">👤</span>
+            <span class="bottom-nav-label">个人</span>
+        </a>
+    </nav>
 
     <!-- 分享提示Toast -->
     <div id="toast" class="toast hidden"></div>
