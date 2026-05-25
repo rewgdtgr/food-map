@@ -5,8 +5,7 @@
  */
 
 // ========== 美食数据 ==========
-// 图片说明：使用 emoji 图标 + 渐变色背景作为美食占位图
-// data-ai-placeholder 标记处可替换为真实美食照片或 AI 生成图片
+// 图片说明：使用 Unsplash 真实美食图片
 const FOOD_DATA = [
     {
         id: 1,
@@ -19,10 +18,9 @@ const FOOD_DATA = [
         priceMax: 12,
         rating: 5,
         badge: '人气TOP1',
-        emoji: '🥞',
+        emoji: '',
         gradient: 'linear-gradient(135deg, #F6D365 0%, #FDA085 100%)',
-        // data-ai-placeholder: 待替换为AI生成美食图片 - 煎饼果子实拍或AI生成图
-        image: ''
+        image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&h=400&fit=crop'
     },
     {
         id: 2,
@@ -35,10 +33,9 @@ const FOOD_DATA = [
         priceMax: 25,
         rating: 5,
         badge: '同学最爱',
-        emoji: '🍜',
+        emoji: '',
         gradient: 'linear-gradient(135deg, #FF6B6B 0%, #EE5A24 100%)',
-        // data-ai-placeholder: 待替换为AI生成美食图片 - 麻辣烫实拍或AI生成图
-        image: ''
+        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&h=400&fit=crop'
     },
     {
         id: 3,
@@ -53,8 +50,7 @@ const FOOD_DATA = [
         badge: null,
         emoji: '🧃',
         gradient: 'linear-gradient(135deg, #96E6A1 0%, #DDF47C 100%)',
-        // data-ai-placeholder: 待替换为AI生成美食图片 - 果汁饮品实拍或AI生成图
-        image: ''
+        image: 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=600&h=400&fit=crop'
     },
     {
         id: 4,
@@ -69,8 +65,7 @@ const FOOD_DATA = [
         badge: null,
         emoji: '🍗',
         gradient: 'linear-gradient(135deg, #F093FB 0%, #F5576C 100%)',
-        // data-ai-placeholder: 待替换为AI生成美食图片 - 炸鸡排实拍或AI生成图
-        image: ''
+        image: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=600&h=400&fit=crop'
     },
     {
         id: 5,
@@ -85,8 +80,7 @@ const FOOD_DATA = [
         badge: '新品推荐',
         emoji: '🧁',
         gradient: 'linear-gradient(135deg, #FFD1FF 0%, #FAB1D0 100%)',
-        // data-ai-placeholder: 待替换为AI生成美食图片 - 蛋糕甜品实拍或AI生成图
-        image: ''
+        image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&h=400&fit=crop'
     },
     {
         id: 6,
@@ -99,10 +93,9 @@ const FOOD_DATA = [
         priceMax: 20,
         rating: 5,
         badge: null,
-        emoji: '🌶️',
+        emoji: '️',
         gradient: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
-        // data-ai-placeholder: 待替换为AI生成美食图片 - 重庆小面实拍或AI生成图
-        image: ''
+        image: 'https://images.unsplash.com/photo-1552611052-33e04de1b100?w=600&h=400&fit=crop'
     },
     {
         id: 7,
@@ -117,8 +110,7 @@ const FOOD_DATA = [
         badge: null,
         emoji: '🧋',
         gradient: 'linear-gradient(135deg, #A8EDEA 0%, #FED6E3 100%)',
-        // data-ai-placeholder: 待替换为AI生成美食图片 - 珍珠奶茶实拍或AI生成图
-        image: ''
+        image: 'https://images.unsplash.com/photo-1558857563-b371033873b8?w=600&h=400&fit=crop'
     },
     {
         id: 8,
@@ -133,8 +125,7 @@ const FOOD_DATA = [
         badge: null,
         emoji: '🍦',
         gradient: 'linear-gradient(135deg, #667EEA 0%, #764BA2 100%)',
-        // data-ai-placeholder: 待替换为AI生成美食图片 - 冰淇淋实拍或AI生成图
-        image: ''
+        image: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&h=400&fit=crop'
     }
 ];
 
